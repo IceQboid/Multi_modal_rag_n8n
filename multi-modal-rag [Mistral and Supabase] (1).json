@@ -1,0 +1,1369 @@
+{
+  "name": "multi-modal-rag [Mistral and Supabase]",
+  "nodes": [
+    {
+      "parameters": {
+        "url": "https://s3.diyprefab.com/zamil-manuals",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "list-type",
+              "value": "2"
+            },
+            {
+              "name": "prefix",
+              "value": "=additional_manuals/"
+            },
+            {
+              "name": "delimiter"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        64,
+        208
+      ],
+      "id": "3edb0c3e-a9a6-42f6-b65f-6c62431f57a9",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.xml",
+      "typeVersion": 1,
+      "position": [
+        336,
+        208
+      ],
+      "id": "2fe229c4-7ac1-4cef-b51e-3397e599bbed",
+      "name": "XML"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "ListBucketResult.Contents",
+        "include": "selectedOtherFields",
+        "fieldsToInclude": "Key",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        560,
+        208
+      ],
+      "id": "a07935d9-f38f-4855-8528-bface6bebb6d",
+      "name": "Split Out"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -592,
+        208
+      ],
+      "id": "560e62dc-f80f-4174-8847-36b34eb63752",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.mistral.ai/v1/ocr",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "mistralCloudApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "value": "="
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n    \"model\": \"mistral-ocr-latest\",\n    \"document\": {\"document_url\": \"https://s3.diyprefab.com/zamil-manuals/additional_manuals/strength-of-material-by-r-k-bansal-31.pdf\"},\n    \"bbox_annotation_format\": {\n        \"type\": \"json_schema\",\n        \"json_schema\": {\n            \"schema\": {\n                \"title\": \"Engineering_Document_Annotation\",\n                \"type\": \"object\",\n                \"properties\": {\n                    \"document_title\": {\n                        \"type\": \"string\",\n                        \"description\": \"Full title or name of the document or standard (e.g., 'AISC 360-16 Specification for Structural Steel Buildings').\"\n                    },\n                    \"section_id\": {\n                        \"type\": \"string\",\n                        \"description\": \"Section, clause, or figure identifier (e.g., 'Section J2.2', 'Table 3-2', 'Clause 6.5').\"\n                    },\n                    \"section_title\": {\n                        \"type\": \"string\",\n                        \"description\": \"Title or heading of the section or table.\"\n                    },\n                    \"technical_summary\": {\n                        \"type\": \"string\",\n                        \"description\": \"A concise, clear summary of the technical content in this region (what rule, formula, or guideline it provides).\"\n                    },\n                    \"keywords\": {\n                        \"type\": \"array\",\n                        \"items\": {\"type\": \"string\"},\n                        \"description\": \"Key engineering terms mentioned (e.g., 'bending stress', 'yield strength', 'load combination').\"\n                    },\n                    \"equations_or_values\": {\n                        \"type\": \"array\",\n                        \"items\": {\"type\": \"string\"},\n                        \"description\": \"Mathematical expressions, formulae, or numerical data found in the text block.\"\n                    },\n                    \"reference_code\": {\n                        \"type\": \"string\",\n                        \"description\": \"Reference code or standard source (e.g., 'AISC 360-16', 'ASCE 7-22').\"\n                    }\n                },\n                \"required\": [\n                    \"document_title\",\n                    \"section_id\",\n                    \"technical_summary\"\n                ],\n                \"additionalProperties\": false\n            },\n            \"name\": \"engineering_doc_annotation\",\n            \"strict\": true\n        }\n    },\n    \"include_image_base64\": true\n}",
+        "options": {
+          "redirect": {
+            "redirect": {}
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        2544,
+        1392
+      ],
+      "id": "bdf3715b-23cb-4c93-aada-26d6440c4d14",
+      "name": "Annotations test",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "kkcsH3lA21Ttl39g",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "pages",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3232,
+        1104
+      ],
+      "id": "44fc0ed1-7c2a-4fa1-8762-6482390f0aed",
+      "name": "Split Out pages"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "images",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        3456,
+        1104
+      ],
+      "id": "a4681f3f-0b7a-44fa-b769-463dcaa354a8",
+      "name": "Split Out Images",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "content": "## Collect All Files from \"zamil-manuals\" bucket",
+        "height": 224,
+        "width": 736,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -16,
+        144
+      ],
+      "typeVersion": 1,
+      "id": "f3e0600c-09fc-457d-913d-5c391a28e929",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "478a7284-e1d8-4d8e-87df-16a296bc626d",
+              "name": "image_base64",
+              "value": "={{ $('Split Out Images').item.json.image_base64.split(',')[1]; }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3984,
+        816
+      ],
+      "id": "80cc19b8-1b85-497f-98c9-0ab5354e3c3b",
+      "name": "prepare base64",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "image_base64",
+        "options": {
+          "fileName": "={{ $('Set File Name').item.json.file_name }}"
+        }
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        4224,
+        816
+      ],
+      "id": "4c975ad2-8c15-4933-bd43-f526ee9fdda1",
+      "name": "Convert to File",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1855f5a9-c2f6-4fcd-9d45-9a36f75085d1",
+              "name": "file_name",
+              "value": "={{ (Date.now().toString(36) + \n Math.random().toString(36).substring(2, 10) + \n Math.random().toString(36).substring(2, 10) + \n Math.random().toString(36).substring(2, 10)\n).toLowerCase()\n}}",
+              "type": "string"
+            },
+            {
+              "id": "26a6ff07-c866-43f8-ae55-60a2ace1e127",
+              "name": "image_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "6f0a900a-1724-4221-8d99-accbd29bbfa7",
+              "name": "image_annotation",
+              "value": "={{ $json.image_annotation }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        3648,
+        1104
+      ],
+      "id": "305eb9f3-3257-400d-8a42-9594b31903d0",
+      "name": "Set File Name",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "file_name",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5088,
+        1088
+      ],
+      "id": "cce0473a-932c-4e9a-9de1-005f19833564",
+      "name": "Merge",
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "destinationFieldName": "uploaded_images",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        5392,
+        1088
+      ],
+      "id": "603a3a42-839c-4b79-8b1b-616d7d188de2",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        5984,
+        1344
+      ],
+      "id": "103c9bc2-2feb-4994-a488-508d756eb551",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "pages",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        6288,
+        1344
+      ],
+      "id": "f8a09f47-1f78-45a0-a8d6-c248bb0a73fd",
+      "name": "Split Out Pages 2"
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Safely access uploaded_images from Merge1\nconst mergeItem = $('Merge1').item;\nconst uploadedImages = mergeItem?.json?.uploaded_images;\n\nlet markdown = $json.markdown;\n\nconst supabaseBaseUrl = $('Supabase_account_details').item.json.supabase_base_url;\nconst bucketName = $('Supabase_account_details').item.json.supabase_storage_bucket_name;\n\n// Construct full base URL for public file access\nconst fullBaseUrl = `${supabaseBaseUrl}/storage/v1/object/public/${bucketName}/`;\n\n// Only run replacement if uploadedImages is a non-empty array\nif (Array.isArray(uploadedImages) && uploadedImages.length > 0) {\n  for (const image of uploadedImages) {\n    const image_id = image.image_id;\n    const fileName = image.file_name;\n    const annotation = image.image_annotation || '';\n\n    // Pattern of the local markdown before upload\n    const localMarkdownPattern = `![${image_id}](${image_id})`;\n\n    // Replacement pattern with hosted URL and annotation\n    const hostedMarkdownWithAnnotation = `![${image_id}](${fullBaseUrl}${fileName})\\n\\n${annotation}`;\n\n    // Replace only if the original pattern exists\n    if (markdown.includes(localMarkdownPattern)) {\n      markdown = markdown.replaceAll(localMarkdownPattern, hostedMarkdownWithAnnotation);\n    }\n  }\n}\n\n// Return updated markdown along with the existing JSON\nreturn {\n  json: {\n    ...$json,\n    markdown\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        7024,
+        1536
+      ],
+      "id": "5118186b-92b9-4863-8552-2f400f1dd967",
+      "name": "Include img URL with md",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "mode": "insert",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        7952,
+        1312
+      ],
+      "id": "ea582cf3-a510-4aac-b008-a26302d5dc7d",
+      "name": "Supabase Vector Store",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dQjP5x9FQqFxo22C",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        7856,
+        1584
+      ],
+      "id": "42e734b8-2206-4878-bedd-4ac6a8178560",
+      "name": "Embeddings OpenAI",
+      "credentials": {
+        "openAiApi": {
+          "id": "W6MBR00alcbgJqVh",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonMode": "expressionData",
+        "jsonData": "={{ $json.markdown }}",
+        "textSplittingMode": "custom",
+        "options": {
+          "metadata": {
+            "metadataValues": [
+              {
+                "name": "file_name",
+                "value": "={{ $('Loop Over Items').item.json.file_name }}"
+              }
+            ]
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.documentDefaultDataLoader",
+      "typeVersion": 1.1,
+      "position": [
+        8048,
+        1504
+      ],
+      "id": "e0c997b8-2d80-4cea-8869-85b930fb7fb9",
+      "name": "Default Data Loader"
+    },
+    {
+      "parameters": {
+        "chunkOverlap": 200,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.textSplitterRecursiveCharacterTextSplitter",
+      "typeVersion": 1,
+      "position": [
+        8048,
+        1680
+      ],
+      "id": "7d72246a-3ba4-41ce-8674-1c82cc17ed48",
+      "name": "Recursive Character Text Splitter"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://neuzewocxsenavkrcwjc.supabase.co/storage/v1/object/diyva-rag/images/{{ $binary.data.fileName }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "contentType": "binaryData",
+        "inputDataFieldName": "data",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        4464,
+        816
+      ],
+      "id": "295e85a8-a677-43aa-b588-6ee96fb6eb63",
+      "name": "HTTP Request",
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "dQjP5x9FQqFxo22C",
+          "name": "Supabase account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4112d067-17eb-4160-90ef-906c38953006",
+              "name": "file_name",
+              "value": "={{ $json.Key.split('images/').slice(1).join('/')}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        4672,
+        816
+      ],
+      "id": "f09f3f97-303f-48d2-9d38-11d814313399",
+      "name": "Get Uploaded File Name",
+      "alwaysOutputData": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "You are a helpful assistant.\n\nYour role is to answer questions exclusively using information retrieved from the Supabase vector store.\nDo not answer using prior model knowledge or external sources.\nAll responses must be grounded only in the retrieved content.\n\n---\n\n### IMAGE HANDLING RULES\n\nWhen retrieved content includes image URLs:\n\n- Display the image whenever it is directly relevant to the user's question.\n- The image must clearly match the topic being asked.\n- Do not display images that are unrelated or weakly related.\n- If an image is decorative, irrelevant, or a general manual logo → Ignore it.\n- If the user explicitly asks for an image, provide it only if the vector store contains a matching image.\n  - If no matching image exists, answer with text and state:\n    \"I am sorry, I was not able to find images for this topic.\"\n- Never ask the user whether they want images.\n- Your decision must be automatic based on relevance.\n- If multiple related images are retrieved, display only the ones that directly support the answer.\n\n---\n\n### ANSWERING RULES\n\n- Use only retrieved Supabase vector store results.\n- If retrieved text is insufficient, incomplete, or ambiguous, respond strictly based on what was retrieved.\n- Never supplement your answer with prior model knowledge or assumptions.\n- If no relevant results are retrieved, respond:\n  \"I’m sorry, I do not have information related to this topic from the retrieved documents.\"\n- Do not hallucinate, fill gaps, or infer anything not explicitly present in the retrieved content.\n- Keep responses clear, concise, and directly tied to the retrieved data.\n\n---\n\n### WHEN NO IMAGE IS AVAILABLE\n\nIf the user’s question naturally expects an image (e.g., diagrams, drawings, figures), but:\n\n- The vector store returns no images, or\n- The images retrieved do not match the topic,\n\nThen respond:\n\n\"I am sorry, I was not able to find images for this topic, but here is the information I found:\"\n\nThen provide the text-only answer.\n\n---\n\n### WHEN PROVIDING IMAGES\n\nWhen showing an image:\n\n- Display the image URL or embed the image.\n- Include a short caption describing what the image represents.\n- Ensure the caption is derived strictly from retrieved text.\n\n---\n\nAlways follow these rules exactly. Never break them.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        352,
+        1136
+      ],
+      "id": "fd525f98-dc7c-455b-8aa4-685d8dcc6953",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "options": {
+          "temperature": 0
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        224,
+        1344
+      ],
+      "id": "69b5496a-8f5a-4065-a735-0e6994108694",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "W6MBR00alcbgJqVh",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolDescription": "Useful to answer question. ",
+        "tableName": {
+          "__rl": true,
+          "value": "documents",
+          "mode": "list",
+          "cachedResultName": "documents"
+        },
+        "topK": 20,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreSupabase",
+      "typeVersion": 1.3,
+      "position": [
+        576,
+        1328
+      ],
+      "id": "de86c08d-f871-4209-85a0-8b780f3df156",
+      "name": "Supabase Vector Store1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "dQjP5x9FQqFxo22C",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        720,
+        1504
+      ],
+      "id": "ba1a2f2d-96b6-48ae-89d8-617430807345",
+      "name": "Embeddings OpenAI1",
+      "credentials": {
+        "openAiApi": {
+          "id": "W6MBR00alcbgJqVh",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cd0dca24-429c-4792-bb3a-09f3cf94179a",
+              "name": "supabase_base_url",
+              "value": "https://neuzewocxsenavkrcwjc.supabase.co",
+              "type": "string"
+            },
+            {
+              "id": "50c085d5-aceb-4513-bd87-64ee264a1f88",
+              "name": "supabase_storage_bucket_name",
+              "value": "diyva-rag/images",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -192,
+        208
+      ],
+      "id": "b65e9cff-d5bf-4174-9edc-1610ccb2f872",
+      "name": "Supabase_account_details"
+    },
+    {
+      "parameters": {
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        2080,
+        1376
+      ],
+      "id": "34811ddd-fdd1-4950-be4f-f0c9d03f2a58",
+      "name": "Loop Over Items"
+    },
+    {
+      "parameters": {
+        "amount": 10,
+        "unit": "minutes"
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        9312,
+        1760
+      ],
+      "id": "24f920e1-da78-4728-aaf0-8f321908d780",
+      "name": "Wait",
+      "webhookId": "c82b47e2-8be2-450a-8ae5-d66fcf4827ff"
+    },
+    {
+      "parameters": {
+        "content": "## Separate Images from the results and upload to Supabase bucket\n",
+        "height": 256,
+        "width": 992,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        3920,
+        752
+      ],
+      "typeVersion": 1,
+      "id": "04e27174-0c70-4155-95b1-dc2a7cab17d6",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "1. Replace the randomly generated file_name with the file_name returned by Supabase post upload\n2. Aggregate images in one array \n3. Merge Markdown and Uploaded Images in a single JSON for replacing image placeholders with image URL, description and other relevant annotations.  ",
+        "height": 608,
+        "width": 1088,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        5008,
+        960
+      ],
+      "typeVersion": 1,
+      "id": "9150d170-34f3-41ca-93f7-6728076bbb8f",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "chatInput"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        32,
+        1136
+      ],
+      "id": "f84603ea-0319-4e10-95c7-aa8c91b98ae2",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "tableId": "record_manager",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "file_name",
+              "fieldValue": "={{ $('Sort').item.json.file_name }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        8976,
+        1312
+      ],
+      "id": "2d1bdfa9-13fa-47f7-bb40-68763a06e137",
+      "name": "Create a row",
+      "executeOnce": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "dQjP5x9FQqFxo22C",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "record_manager",
+        "returnAll": true
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        -80,
+        720
+      ],
+      "id": "e2cd2d8e-aca5-40d1-ba2b-5def2ba5caae",
+      "name": "Get many rows",
+      "executeOnce": false,
+      "alwaysOutputData": true,
+      "credentials": {
+        "supabaseApi": {
+          "id": "dQjP5x9FQqFxo22C",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "fieldsToMatchString": "file_name",
+        "joinMode": "keepNonMatches",
+        "outputDataFrom": "input1",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1648,
+        432
+      ],
+      "id": "ae51d0e3-e540-4bbc-9b27-176ccc08da4b",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "file_name"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        512,
+        720
+      ],
+      "id": "4f01b3d7-3ff5-4276-bc0b-946bef39e967",
+      "name": "Aggregate1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f689624e-11dd-49f0-87c2-9d2ae20259ab",
+              "name": "file_name",
+              "value": "={{ $json['ListBucketResult.Contents'].Key }}",
+              "type": "string"
+            },
+            {
+              "id": "bcaa2421-6c6d-43ad-ba4d-3906c1ea9c92",
+              "name": "size",
+              "value": "={{ $json[\"ListBucketResult.Contents\"].Size }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        816,
+        208
+      ],
+      "id": "f66b4537-62a5-4060-b781-ebc6b1fd8ee7",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "file_name",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        720
+      ],
+      "id": "75cd5b4c-5cc2-4c37-8392-2c069c1b4cf6",
+      "name": "Split Out1"
+    },
+    {
+      "parameters": {
+        "content": "## Record Manger Logic \n",
+        "height": 816,
+        "width": 2368,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -368,
+        80
+      ],
+      "typeVersion": 1,
+      "id": "d1c3b6ec-a864-4e4d-b6de-3f53c40a17af",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "type": "code",
+        "code": "// Sort by \"size\" field, converted to a number\nconst aSize = Number(a.json.size);\nconst bSize = Number(b.json.size);\n\nif (aSize < bSize) return -1;\nif (aSize > bSize) return 1;\nreturn 0;\n"
+      },
+      "type": "n8n-nodes-base.sort",
+      "typeVersion": 1,
+      "position": [
+        1232,
+        208
+      ],
+      "id": "e80fbd1b-3928-4785-97cd-159d408582e8",
+      "name": "Sort",
+      "retryOnFail": true
+    },
+    {
+      "parameters": {
+        "batchSize": 10,
+        "options": {
+          "reset": false
+        }
+      },
+      "type": "n8n-nodes-base.splitInBatches",
+      "typeVersion": 3,
+      "position": [
+        6624,
+        1344
+      ],
+      "id": "e5e55c19-9077-499e-bb19-9560c51e62d5",
+      "name": "Loop Over Items1"
+    },
+    {
+      "parameters": {
+        "amount": 2
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        7296,
+        1536
+      ],
+      "id": "746b871e-93d2-49be-9332-20196142089f",
+      "name": "Wait1",
+      "webhookId": "cdfb38d4-8713-4157-8861-84cf892ef249"
+    },
+    {
+      "parameters": {
+        "content": "## Reduces the workload for larger pdfs [200+ pages] and keeps the execution time within the timeout limit ",
+        "height": 560,
+        "width": 1040,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        6528,
+        1200
+      ],
+      "typeVersion": 1,
+      "id": "06812db6-c2bc-4edb-a052-8f970f89e329",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Merge node logic:\n\n- relies on file name\n- When the files don't match the files existing in supabase, return the un-matched files [unprocessed files] ",
+        "height": 240,
+        "width": 400,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        2128,
+        672
+      ],
+      "typeVersion": 1,
+      "id": "f60e09b4-7827-40f7-8058-e53d2953b40a",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "url": "https://s3.diyprefab.com/zamil-manuals",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "list-type",
+              "value": "2"
+            },
+            {
+              "name": "prefix",
+              "value": "=Codes and Specifications/"
+            },
+            {
+              "name": "delimiter"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        64,
+        448
+      ],
+      "id": "9f3088a9-5d50-4560-8c4e-b70ddd22808a",
+      "name": "HTTP Request2"
+    }
+  ],
+  "pinData": {
+    "When clicking ‘Execute workflow’": [
+      {
+        "json": {},
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "XML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "XML": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Supabase_account_details",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get many rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Annotations test": {
+      "main": [
+        [
+          {
+            "node": "Split Out pages",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Split Out pages": {
+      "main": [
+        [
+          {
+            "node": "Split Out Images",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Images": {
+      "main": [
+        [
+          {
+            "node": "Set File Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "prepare base64": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set File Name": {
+      "main": [
+        [
+          {
+            "node": "prepare base64",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Split Out Pages 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out Pages 2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Include img URL with md": {
+      "main": [
+        [
+          {
+            "node": "Wait1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Data Loader": {
+      "ai_document": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "ai_document",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Recursive Character Text Splitter": {
+      "ai_textSplitter": [
+        [
+          {
+            "node": "Default Data Loader",
+            "type": "ai_textSplitter",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Convert to File": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Get Uploaded File Name",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Uploaded File Name": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings OpenAI1": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Supabase Vector Store1",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase_account_details": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Annotations test",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Supabase Vector Store": {
+      "main": [
+        [
+          {
+            "node": "Create a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a row": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Split Out1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Sort",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out1": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Sort": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Loop Over Items1": {
+      "main": [
+        [
+          {
+            "node": "Supabase Vector Store",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Include img URL with md",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait1": {
+      "main": [
+        [
+          {
+            "node": "Loop Over Items1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "d9d411f5-649a-4b13-b828-ffe206a821ae",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d4b4d0eabe8fbefe07fcc9e93ff80219687990c826ebade8f76e4e6de90b238e"
+  },
+  "id": "KywUoyVr86HmuojY",
+  "tags": []
+}
